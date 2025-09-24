@@ -8,21 +8,31 @@ st.set_page_config(page_title="Daily Check-Ins", page_icon="🗓️", layout="ce
 
 # --- Google Sheets setup from Streamlit secrets ---
 sc = st.secrets["gsheets"]
+
 creds = Credentials.from_service_account_info(
     {
         "type": sc["type"],
         "project_id": sc["project_id"],
         "private_key_id": sc["private_key_id"],
-        "private_key": sc["private_key"],
+        "private_key": sc["private_key"],  # triple-quoted in Secrets
         "client_email": sc["client_email"],
         "client_id": sc["client_id"],
         "token_uri": sc["token_uri"],
     },
-    scopes=["https://www.googleapis.com/auth/spreadsheets"],
+    scopes=["https://www.googleapis.com/auth/spreadsheets"],  # no Drive scope needed when opening by key
 )
+
 gc = gspread.authorize(creds)
-sh = gc.open_by_key(sc["1DofLjp8sBQHrDm1wn_Ep0YQvKG5fl1TG9Tt3VOZ0Ahg"])
-ws = sh.worksheet(sc["Sheet1"])
+
+# ✅ Read values, not keys, from secrets
+spreadsheet_id = sc.get("spreadsheet_id")         # e.g. "1DofLjp8sBQHrDm1wn_Ep0YQvKG5fl1TG9Tt3VOZ0Ahg"
+worksheet_name = sc.get("worksheet_name", "Sheet1")
+
+if not spreadsheet_id:
+    st.stop()  # clean halt with no noisy traceback
+
+sh = gc.open_by_key(spreadsheet_id)
+ws = sh.worksheet(worksheet_name)
 
 # Initialize headers if sheet is empty
 if len(ws.get_all_values()) == 0:
