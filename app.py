@@ -21,8 +21,8 @@ creds = Credentials.from_service_account_info(
     scopes=["https://www.googleapis.com/auth/spreadsheets"],
 )
 gc = gspread.authorize(creds)
-sh = gc.open(sc["spreadsheet_name"])
-ws = sh.worksheet(sc["worksheet_name"])
+sh = gc.open(sc["daily_checkins"])
+ws = sh.worksheet(sc["Sheet1"])
 
 # Initialize headers if sheet is empty
 if len(ws.get_all_values()) == 0:
